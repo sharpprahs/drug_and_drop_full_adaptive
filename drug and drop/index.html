@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>d_and_d</title>
+	<style>
+	html {
+		line-height: 1.15;
+		-webkit-text-size-adjust: 100%;
+	}
+	body {
+		margin: 0;
+	}
+</style>
+<link rel="stylesheet" type="text/css" href="assets/css/style.css">
+</head>
+<body>
+	<div class="drug_element" draggable="true" data-val="outside">
+<!-- <picture>
+<source srcset="assets/images/window.webp" type="image/webp">
+<img src="assets/images/window.webp" alt="window">
+</picture> -->
+</div>
+<div class="box" crossorigin="Anonymous">
+</div>
+<button onclick="Submit();" >Submit</button>
+<script>
+  const wrapper = document.querySelector(".box");
+  window.drag = document.querySelector('.drug_element');
+  window.num = 1;
+  dragAndDrop(drag)
+  function dragAndDrop(value){
+    value.addEventListener('touchmove',dragMove);
+    value.addEventListener('touchend',dragDrop);
+  }
+  function dragMove(event){
+    event.preventDefault();
+    if (num == 1){
+      window.start_postion = window.getComputedStyle(drag, null).getPropertyValue("margin-top");
+      drag.classList.add("drug_element--hold");
+      drag.style.position = "absolute";
+      wrapper.classList.add("box--hovered");
+
+      const parentPos = wrapper.getBoundingClientRect();
+      const childPos  = drag.getBoundingClientRect();
+      const relativePos = {};
+
+      relativePos.top    = childPos.top - parentPos.top,
+      relativePos.right  = childPos.right - parentPos.right,
+      relativePos.bottom = childPos.bottom - parentPos.bottom,
+      relativePos.left   = childPos.left - parentPos.left;
+      let touch = event.targetTouches[0];
+
+      if (
+       relativePos.top  < -20 || relativePos.left < -20 || relativePos.right > 20 || relativePos.bottom > 20
+       ){
+        num = 0;
+    }
+    if (drag.dataset.val == "outside"){
+      drag.style.top = `${touch.pageY - document.body.offsetTop - (drag.offsetHeight / 2 + 20)}px`;
+      drag.style.left = `${touch.pageX - document.body.offsetLeft - (drag.offsetWidth / 2)}px`;
+    } else {
+      drag.style.top = `${touch.pageY - wrapper.offsetTop - (drag.offsetHeight / 2 + 20)}px`;
+      drag.style.left = `${touch.pageX - wrapper.offsetLeft - (drag.offsetWidth / 2)}px`;
+    }
+  } else {
+   drag.parentNode.removeChild(drag);
+   var newDiv = document.createElement("div");
+   drag = "";
+   drag = newDiv;
+   dragAndDrop(drag);
+   newDiv.className = "drug_element";
+   newDiv.draggable = true;
+   drag.dataset.val = "outside";
+   drag.style.position = "relative";
+   drag.style.margin = `${start_postion}px auto`;
+   document.body.insertBefore(newDiv, document.body.firstChild);
+   wrapper.classList.remove("box--hovered");
+   setTimeout(() => {
+    num = 1;
+  }, "1000");
+ }
+}
+
+function dragDrop(event){
+  if (num == 1){
+    const parentPos = wrapper.getBoundingClientRect();
+    const childPos  = drag.getBoundingClientRect();
+    const relativePos = {};
+
+    relativePos.top    = childPos.top - parentPos.top,
+    relativePos.right  = childPos.right - parentPos.right,
+    relativePos.bottom = childPos.bottom - parentPos.bottom,
+    relativePos.left   = childPos.left - parentPos.left;
+    drag.parentNode.removeChild(drag);
+    var newDiv = document.createElement("div");
+    drag = "";
+    drag = newDiv;
+    dragAndDrop(drag);
+    newDiv.className = "drug_element";
+    newDiv.draggable = true;
+    wrapper.appendChild(newDiv);
+    drag.dataset.val = "inside";
+    drag.style.setProperty("left", `${relativePos.left}px`);
+    drag.style.setProperty("top", `${relativePos.top - 20}px`);
+    drag.style.position = "absolute";
+    console.log(relativePos);
+    wrapper.classList.remove("box--hovered");
+  }
+}
+
+</script>
+<script>
+	const item = document.querySelector(".drug_element");
+// Считываем все боксы в массив
+const boxes = Array.from(document.querySelectorAll(".box"));
+var width_v = item.getBoundingClientRect().width / 2;
+var height_v = item.getBoundingClientRect().height / 2 + 20;
+console.log(height_v)
+
+// Обработчик начала перетаскивания элемента
+item.addEventListener("dragstart", dragstart);
+// Обработчик завершения перетаскивания элемента
+item.addEventListener("dragend", dragend);
+
+// Обработчик для боксов
+boxes.forEach((box) => {
+  // Когда заходим элементом в бокс
+  box.addEventListener("dragover", dragover);
+  // Когда отпускаем элемент на нужном боксе
+  box.addEventListener("drop", drop);
+  // Когда достигаем бокс
+  box.addEventListener("dragenter", dragenter);
+  // Когда покидаем бокс
+  box.addEventListener("dragleave", dragleave);
+});
+
+// Функция начала перетаскивания элемента
+function dragstart(e) {
+  // Меняем цвет на фиолетовый
+  e.target.classList.add("drug_element--hold");
+  // Удаляем элемент из бокса
+  setTimeout(() => e.target.classList.add("drug_element--hide"), 0);
+}
+
+// Функция завершения перетаскивания элемента
+function dragend(e) {
+  // Меняем цвет на синий
+  e.target.classList.remove("drug_element--hold");
+  // Возвращаем элемент обратно
+  e.target.classList.remove("drug_element--hide");
+  // item.style.backgroundImage = 'linear-gradient(to bottom, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.44)), url("../images/window.png")';
+}
+
+function dragover(e) {
+	e.preventDefault();
+}
+
+function drop(e) {
+  // Добавляем наш элемент в нужный бокс
+  e.target.append(item);
+  item.style.position = 'absolute';
+  moveAt(e);
+  function moveAt(e) {
+  	// console.log(item)
+  	item.style.left = e.layerX  - width_v +'px';
+  	item.style.top = e.layerY - height_v  +'px';
+    // self.style.left = e.pageX - ball.offsetWidth / 2 + 'px';
+    // self.style.top = e.pageY - ball.offsetHeight / 2 + 'px';
+  }
+  // Убираем желтую подсветку
+  e.target.classList.remove("box--hovered");
+
+  // html2canvas(document.querySelector(".box")).then(canvas => {
+  // 	 var imgUrl = canvas.toDataURL ("image / png");
+  // 	console.log ("данные в кодировке base64:", imgUrl);
+  // });
+
+   // html2canvas(document.querySelector('.box')).then( canvas =>{
+   //              var img=canvas.toDataURL("image/png").replace("image/png","image/octet-stream");
+   //              console.log(img);
+   //              window.location.href=img;
+   //          });
+ }
+
+ function dragenter(e) {
+  // Добавляем желтую подсветку
+  e.target.classList.add("box--hovered");
+}
+
+function dragleave(e) {
+  // Убираем желтую подсветку
+  e.target.classList.remove("box--hovered");
+}
+</script>
+<script type="text/javascript">
+	var Submit = function() {
+		html2canvas(document.querySelector(".box")).then(canvas => {
+      // canvas.toDataURL("image/webp",1)
+      document.body.appendChild(canvas)
+
+     // var img=canvas.toDataURL("image/png").replace("image/png","image/octet-stream");
+     // console.log(img);
+     // window.location.href=img;
+   });
+
+ // function screenshot() {
+ //   var canvasPromise  = html2canvas(document.body, {
+ //    useCORS: true
+ //  });
+ //   canvasPromise.then(function(canvas) {
+ //    canvas.toDataURL("image/jpeg",1)
+ //    document.body.appendChild(canvas);
+ //    console.log(canvas);
+ //  });
+ // }
+
+ // screenshot();
+//  var canvasPromise  = html2canvas(document.querySelector(".box"), {
+//   allowTaint: true,
+//   foreignObjectRendering: true
+// });
+//  canvasPromise.then(function(canvas) {
+//    console.log(canvas);
+//    canvas.toDataURL('image/png');
+//    canvas.toDataURL("image/jpeg",1)
+//    document.body.appendChild(canvas);
+//  });
+};
+</script>
+<script src="assets/js/html2canvas.min.js"></script>
+</body>
+</html>
